@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="File Compressor — Compress files using Huffman, RLE, and LZW algorithms with auto-selection, comparison mode, and CRC32 integrity verification.">
+  <title>File Compressor v2.0</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗜️</text></svg>">
+</head>
+<body>
+
+  <!-- Background effects -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-icon">🗜️</div>
+      <h1>File Compressor</h1>
+      <p>Intelligent multi-algorithm compression with integrity verification</p>
+      <div class="badge-row">
+        <span class="badge">Huffman</span>
+        <span class="badge">RLE</span>
+        <span class="badge">LZW</span>
+        <span class="badge">Auto-Select</span>
+        <span class="badge">CRC32</span>
+      </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="compress" id="tab-compress">
+        <span>📦</span> Compress
+      </button>
+      <button class="tab" data-tab="decompress" id="tab-decompress">
+        <span>📂</span> Decompress
+      </button>
+      <button class="tab" data-tab="compare" id="tab-compare">
+        <span>📊</span> Compare
+      </button>
+    </div>
+
+    <!-- ═══ COMPRESS SECTION ═══ -->
+    <div class="section active" id="section-compress">
+      <div class="card">
+        <div class="drop-zone" id="compress-dropzone">
+          <span class="drop-zone-icon">📁</span>
+          <div class="drop-zone-text">Drop a file here or click to browse</div>
+          <div class="drop-zone-hint">Supports any file type · Max 100MB</div>
+          <input type="file" id="compress-file-input" hidden>
+        </div>
+        <div id="compress-file-info" style="display:none"></div>
+      </div>
+
+      <div class="card">
+        <label class="stat-label" style="margin-bottom:12px;display:block">ALGORITHM</label>
+        <div class="algo-grid" id="algo-grid">
+          <div class="algo-option selected" data-algo="auto">
+            <div class="algo-option-icon">✨</div>
+            <div class="algo-option-name">Auto</div>
+            <div class="algo-option-desc">Best pick</div>
+          </div>
+          <div class="algo-option" data-algo="huffman">
+            <div class="algo-option-icon">🌳</div>
+            <div class="algo-option-name">Huffman</div>
+            <div class="algo-option-desc">Frequency</div>
+          </div>
+          <div class="algo-option" data-algo="rle">
+            <div class="algo-option-icon">🔁</div>
+            <div class="algo-option-name">RLE</div>
+            <div class="algo-option-desc">Run-length</div>
+          </div>
+          <div class="algo-option" data-algo="lzw">
+            <div class="algo-option-icon">📖</div>
+            <div class="algo-option-name">LZW</div>
+            <div class="algo-option-desc">Dictionary</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="compress-btn" disabled>
+        <span>🗜️</span> Compress File
+      </button>
+
+      <div class="spinner" id="compress-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-text">Compressing your file...</div>
+      </div>
+
+      <div class="error-msg" id="compress-error"></div>
+      <div id="compress-result"></div>
+    </div>
+
+    <!-- ═══ DECOMPRESS SECTION ═══ -->
+    <div class="section" id="section-decompress">
+      <div class="card">
+        <div class="drop-zone" id="decompress-dropzone">
+          <span class="drop-zone-icon">📦</span>
+          <div class="drop-zone-text">Drop a .fcmp file here</div>
+          <div class="drop-zone-hint">Upload a compressed .fcmp file to restore</div>
+          <input type="file" id="decompress-file-input" accept=".fcmp" hidden>
+        </div>
+        <div id="decompress-file-info" style="display:none"></div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="decompress-btn" disabled>
+        <span>📂</span> Decompress File
+      </button>
+
+      <div class="spinner" id="decompress-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-text">Decompressing your file...</div>
+      </div>
+
+      <div class="error-msg" id="decompress-error"></div>
+      <div id="decompress-result"></div>
+    </div>
+
+    <!-- ═══ COMPARE SECTION ═══ -->
+    <div class="section" id="section-compare">
+      <div class="card">
+        <div class="drop-zone" id="compare-dropzone">
+          <span class="drop-zone-icon">📊</span>
+          <div class="drop-zone-text">Drop a file to compare all algorithms</div>
+          <div class="drop-zone-hint">See which algorithm works best for your file</div>
+          <input type="file" id="compare-file-input" hidden>
+        </div>
+        <div id="compare-file-info" style="display:none"></div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="compare-btn" disabled>
+        <span>📊</span> Compare Algorithms
+      </button>
+
+      <div class="spinner" id="compare-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-text">Running all algorithms...</div>
+      </div>
+
+      <div class="error-msg" id="compare-error"></div>
+      <div id="compare-result"></div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
