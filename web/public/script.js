@@ -22,7 +22,7 @@ function setupDropZone(dropzoneId, inputId, infoId, btnId) {
 
   dropzone.addEventListener('click', () => input.click());
 
-  dropzone.addEventListener('dragover', (e) => {
+  dropzone.addEventListener('dragover', e => {
     e.preventDefault();
     dropzone.classList.add('dragover');
   });
@@ -31,12 +31,10 @@ function setupDropZone(dropzoneId, inputId, infoId, btnId) {
     dropzone.classList.remove('dragover');
   });
 
-  dropzone.addEventListener('drop', (e) => {
+  dropzone.addEventListener('drop', e => {
     e.preventDefault();
     dropzone.classList.remove('dragover');
-    if (e.dataTransfer.files.length > 0) {
-      setFile(e.dataTransfer.files[0]);
-    }
+    if (e.dataTransfer.files.length > 0) setFile(e.dataTransfer.files[0]);
   });
 
   input.addEventListener('change', () => {
@@ -46,22 +44,20 @@ function setupDropZone(dropzoneId, inputId, infoId, btnId) {
   function setFile(file) {
     selectedFile = file;
     btn.disabled = false;
-
     infoContainer.style.display = 'block';
     infoContainer.innerHTML = `
       <div class="file-selected">
-        <span class="file-selected-icon">📄</span>
+        <div class="file-selected-dot"></div>
         <div class="file-selected-info">
           <div class="file-selected-name">${escapeHtml(file.name)}</div>
           <div class="file-selected-size">${formatSize(file.size)}</div>
         </div>
-        <button class="file-selected-remove" onclick="clearFile_${dropzoneId}()">✕</button>
+        <button class="file-selected-remove" onclick="clearFile_${dropzoneId}()" aria-label="Remove file">&times;</button>
       </div>
     `;
   }
 
-  // Expose clear function globally
-  window[`clearFile_${dropzoneId}`] = function() {
+  window[`clearFile_${dropzoneId}`] = function () {
     selectedFile = null;
     btn.disabled = true;
     infoContainer.style.display = 'none';
@@ -69,7 +65,6 @@ function setupDropZone(dropzoneId, inputId, infoId, btnId) {
     input.value = '';
   };
 
-  // Return getter for selected file
   return () => selectedFile;
 }
 
@@ -82,14 +77,22 @@ const getCompareFile = setupDropZone('compare-dropzone', 'compare-file-input', '
 // ─────────────────────────────────────────────
 let selectedAlgo = 'auto';
 
-document.getElementById('algo-grid').addEventListener('click', (e) => {
+document.getElementById('algo-grid').addEventListener('click', e => {
   const option = e.target.closest('.algo-option');
   if (!option) return;
-
   document.querySelectorAll('.algo-option').forEach(o => o.classList.remove('selected'));
   option.classList.add('selected');
   selectedAlgo = option.dataset.algo;
 });
+
+// ─────────────────────────────────────────────
+// SVG ICONS
+// ─────────────────────────────────────────────
+const icons = {
+  check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  download: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+  trophy: `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
+};
 
 // ─────────────────────────────────────────────
 // COMPRESS
@@ -109,9 +112,7 @@ document.getElementById('compress-btn').addEventListener('click', async () => {
   try {
     const res = await fetch('/api/compress', { method: 'POST', body: formData });
     const data = await res.json();
-
     hideSpinner('compress-spinner');
-
     if (!data.success) throw new Error(data.error);
 
     const saved = data.spaceSaved || 0;
@@ -122,10 +123,10 @@ document.getElementById('compress-btn').addEventListener('click', async () => {
     document.getElementById('compress-result').innerHTML = `
       <div class="result-card">
         <div class="result-header">
-          <span class="result-header-icon">✅</span>
+          <div class="result-check">${icons.check}</div>
           <div>
-            <h3>Compression Complete</h3>
-            <span>Algorithm: ${data.algorithm || 'Auto'}</span>
+            <div class="result-title">Compression Complete</div>
+            <div class="result-subtitle">Algorithm: ${data.algorithm || 'Auto'}</div>
           </div>
         </div>
 
@@ -143,23 +144,23 @@ document.getElementById('compress-btn').addEventListener('click', async () => {
             <div class="stat-value ${valueClass}">${saved.toFixed(2)}%</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label">Checksum (CRC32)</div>
-            <div class="stat-value" style="font-size:16px;color:var(--text-secondary)">${data.checksum || 'N/A'}</div>
+            <div class="stat-label">CRC32 Checksum</div>
+            <div class="stat-value mono" style="font-size:14px;color:var(--text-3)">${data.checksum || '—'}</div>
           </div>
         </div>
 
-        <div class="progress-bar-container">
-          <div class="progress-bar-label">
-            <span>Compression Ratio</span>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Compression ratio</span>
             <span>${saved.toFixed(1)}%</span>
           </div>
-          <div class="progress-bar">
-            <div class="progress-bar-fill ${barClass}" style="width:${barWidth}%"></div>
+          <div class="progress-track">
+            <div class="progress-fill ${barClass}" style="width:${barWidth}%"></div>
           </div>
         </div>
 
-        <a href="${data.downloadUrl}" class="btn btn-green btn-full" download>
-          <span>⬇️</span> Download Compressed File
+        <a href="${data.downloadUrl}" class="btn btn-success btn-full" download>
+          ${icons.download} Download Compressed File
         </a>
       </div>
     `;
@@ -186,22 +187,20 @@ document.getElementById('decompress-btn').addEventListener('click', async () => 
   try {
     const res = await fetch('/api/decompress', { method: 'POST', body: formData });
     const data = await res.json();
-
     hideSpinner('decompress-spinner');
-
     if (!data.success) throw new Error(data.error);
 
     document.getElementById('decompress-result').innerHTML = `
       <div class="result-card">
         <div class="result-header">
-          <span class="result-header-icon">✅</span>
+          <div class="result-check">${icons.check}</div>
           <div>
-            <h3>Decompression Complete</h3>
-            <span>CRC32 integrity verified</span>
+            <div class="result-title">Decompression Complete</div>
+            <div class="result-subtitle">CRC32 integrity verified</div>
           </div>
         </div>
-        <a href="${data.downloadUrl}" class="btn btn-green btn-full" download="${escapeHtml(data.originalName)}">
-          <span>⬇️</span> Download Restored File
+        <a href="${data.downloadUrl}" class="btn btn-success btn-full" download="${escapeHtml(data.originalName)}">
+          ${icons.download} Download Restored File
         </a>
       </div>
     `;
@@ -228,25 +227,24 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
   try {
     const res = await fetch('/api/compare', { method: 'POST', body: formData });
     const data = await res.json();
-
     hideSpinner('compare-spinner');
-
     if (!data.success) throw new Error(data.error);
 
-    let tableRows = '';
+    let rows = '';
     data.results.forEach(r => {
       const algoClass = r.algorithm.toLowerCase();
       const savedClass = r.spaceSaved > 0 ? 'positive' : 'negative';
-      const bestMark = r.isBest ? '<span class="best-star">★ Best</span>' : '';
+      const bestHtml = r.isBest
+        ? `<span class="best-indicator">${icons.trophy} Best</span>`
+        : '';
       const rowClass = r.isBest ? 'best' : '';
 
-      tableRows += `
+      rows += `
         <tr class="${rowClass}">
-          <td><span class="algo-badge ${algoClass}">${r.algorithm}</span>${bestMark}</td>
-          <td>${formatSize(r.originalSize)}</td>
-          <td>${formatSize(r.compressedSize)}</td>
-          <td class="stat-value ${savedClass}" style="font-size:14px">${r.spaceSaved.toFixed(2)}%</td>
-          <td>${r.timeMs.toFixed(2)} ms</td>
+          <td><span class="algo-badge ${algoClass}">${r.algorithm}</span>${bestHtml}</td>
+          <td class="mono">${formatSize(r.compressedSize)}</td>
+          <td class="stat-value ${savedClass}" style="font-size:13px">${r.spaceSaved.toFixed(2)}%</td>
+          <td class="mono">${r.timeMs.toFixed(2)} ms</td>
         </tr>
       `;
     });
@@ -254,23 +252,22 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
     document.getElementById('compare-result').innerHTML = `
       <div class="result-card">
         <div class="result-header">
-          <span class="result-header-icon">📊</span>
+          <div class="result-check">${icons.check}</div>
           <div>
-            <h3>Algorithm Comparison</h3>
-            <span>${escapeHtml(data.originalName)} · ${formatSize(data.originalSize)}</span>
+            <div class="result-title">Algorithm Comparison</div>
+            <div class="result-subtitle">${escapeHtml(data.originalName)} &middot; ${formatSize(data.originalSize)}</div>
           </div>
         </div>
         <table class="compare-table">
           <thead>
             <tr>
               <th>Algorithm</th>
-              <th>Original</th>
               <th>Compressed</th>
               <th>Saved</th>
               <th>Time</th>
             </tr>
           </thead>
-          <tbody>${tableRows}</tbody>
+          <tbody>${rows}</tbody>
         </table>
       </div>
     `;
@@ -281,27 +278,29 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
 });
 
 // ─────────────────────────────────────────────
-// HELPERS
+// UTILITIES
 // ─────────────────────────────────────────────
 function formatSize(bytes) {
-  if (!bytes && bytes !== 0) return 'N/A';
+  if (bytes == null) return '—';
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
 }
 
 function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  const el = document.createElement('span');
+  el.textContent = str;
+  return el.innerHTML;
 }
 
 function showSpinner(id) { document.getElementById(id).classList.add('active'); }
 function hideSpinner(id) { document.getElementById(id).classList.remove('active'); }
+
 function showError(id, msg) {
   const el = document.getElementById(id);
-  el.textContent = '❌ ' + msg;
+  el.textContent = msg;
   el.classList.add('active');
 }
+
 function hideError(id) { document.getElementById(id).classList.remove('active'); }
 function clearResult(id) { document.getElementById(id).innerHTML = ''; }
